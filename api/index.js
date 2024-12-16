@@ -5,7 +5,8 @@ const express = require("express");
 /* Mongoose is a MongoDB client library providing object modeling for use in an asynchronous environment. Mongoose supports both promises and callbacks. */
 const mongoose = require("mongoose");
 const cors = require("cors");
-const userRoutes = require("../routes/auth");
+const authRoutes = require("../routes/auth");
+const profileRoutes = require("../routes/profile");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -24,8 +25,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Używanie routera dla ścieżki, na razie będzie /api/auth
-app.use("/api/auth", userRoutes);
+// Ścieżki dla routera, /api/auth i /api/profile
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Połączenie z MongoDB
 
