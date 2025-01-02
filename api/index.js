@@ -7,6 +7,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("../routes/auth");
 const profileRoutes = require("../routes/profile");
+const bookmarksRoutes = require("../routes/bookmarks");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -25,9 +26,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Ścieżki dla routera, /api/auth i /api/profile
+// Ścieżki dla routera, /api/auth i /api/profile oraz api/bookmarks
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/bookmarks", bookmarksRoutes);
 
 // Połączenie z MongoDB
 
