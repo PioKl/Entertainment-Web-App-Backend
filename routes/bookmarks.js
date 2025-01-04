@@ -3,87 +3,97 @@ const User = require("../models/User");
 const authenticateToken = require("../middleware/auth");
 const router = express.Router();
 
-// Endpoint do pobierania zakładek użytkownika
+//Endpoint do pobierania zakładek użytkownika
 router.get("/bookmarks", authenticateToken, async (req, res) => {
   try {
+    //Znajdź użytkownika na podstawie ID w tokenie
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" }); //Użytkownik nie znaleziony
     }
 
-    res.json({ bookmarked: user.bookmarked });
+    //Zwróć zakładki użytkownika
+    res.json({ bookmarked: user.bookmarked }); // Zwraca obiekty z ID i typem
   } catch (error) {
+    //Błąd serwera
     res.status(500).json({ message: error.message });
   }
 });
 
-// Endpoint do dodawania zakładki
+//Endpoint do dodawania zakładki
 router.post("/bookmark", authenticateToken, async (req, res) => {
   try {
+    //Znajdź użytkownika na podstawie ID w tokenie
     const user = await User.findById(req.user.id);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" }); //Użytkownik nie znaleziony
     }
 
-    const { movieId } = req.body;
-    if (!movieId) {
-      return res.status(400).json({ message: "Movie ID is required" });
+    const { movieId, type } = req.body;
+    if (!movieId || !type) {
+      return res
+        .status(400)
+        .json({ message: "Movie ID and type are required" });
     }
 
-    if (!user.bookmarked.includes(movieId)) {
-      user.bookmarked.push(movieId); // Dodaj do zakładek
-      await user.save();
-    }
+    const bookmark = { id: movieId.toString(), type };
 
+    //Sprawdzenie, czy zakładka już istnieje
+    if (
+      !user.bookmarked.some(
+        (item) => item.id === bookmark.id && item.type === bookmark.type
+      )
+    ) {
+      user.bookmarked.push(bookmark); //Dodaj nową zakładkę
+      await user.save(); //Zapisz zmiany w bazie danych
+    }
+    //Zwróć komunikat o dodaniu i zaktualizowane zakładki
     res.json({
       message: "Bookmark added successfully",
       bookmarked: user.bookmarked,
-    }); // Zwróć aktualne zakładki
+    });
   } catch (error) {
+    //Błąd serwera
     res.status(500).json({ message: error.message });
   }
 });
 
-// Endpoint do usuwania zakładki
-
+//Endpoint do usuwania zakładki
 router.delete("/bookmark", authenticateToken, async (req, res) => {
   try {
+    //Znajdź użytkownika na podstawie ID w tokenie
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { movieId } = req.body;
-    console.log("Usuwany movieId:", movieId);
-    console.log("Aktualne zakładki:", user.bookmarked);
-
-    if (!movieId) {
-      return res.status(400).json({ message: "Movie ID is required" });
+    const { movieId, type } = req.body;
+    if (!movieId || !type) {
+      return res
+        .status(400)
+        .json({ message: "Movie ID and type are required" });
     }
 
-    // Konwertuj movieId na String
-    const movieIdStr = movieId.toString();
+    //Znajdź indeks zakładki
+    const index = user.bookmarked.findIndex(
+      (item) => item.id === movieId.toString() && item.type === type
+    );
 
-    // Sprawdenie, czy movieId jest w zakładkach
-    if (!user.bookmarked.includes(movieIdStr)) {
-      return res.status(400).json({ message: "Movie not in bookmarks" });
+    //Gdy zakładka, do usunięcia, nie została znaleziona w tablicy user.bookmarked
+    if (index === -1) {
+      return res.status(400).json({ message: "Bookmark not found" });
     }
 
-    // Znajdź indeks movieId w zakładkach
-    const index = user.bookmarked.indexOf(movieIdStr);
-    if (index > -1) {
-      user.bookmarked.splice(index, 1); // Usuń z zakładek
-    }
+    user.bookmarked.splice(index, 1); //Usuń zakładkę
+    await user.save(); //Zapisz zmiany w bazie danych
 
-    await user.save();
-    console.log("Zakładki po usunięciu:", user.bookmarked);
-
+    //Zwróć komunikat o usunięciu i zaktualizowane zakładki
     res.json({
       message: "Bookmark removed successfully",
       bookmarked: user.bookmarked,
-    }); // Zwróć aktualne zakładki
+    });
   } catch (error) {
-    console.error("Błąd podczas usuwania zakładki:", error);
+    //Błąd serwera
     res.status(500).json({ message: error.message });
   }
 });
