@@ -17,7 +17,10 @@ const port = process.env.PORT || 5000;
 app.use(
   cors({
     //domeny frontendowe
-    origin: ["http://localhost:3000"],
+    origin: [
+      "http://localhost:3000", //Frontend lokalny
+      "https://entertainment-web-app-five-brown.vercel.app", //Frontend w środowisku produkcyjnym
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Dozwolone metody HTTP
     allowedHeaders: ["Content-Type", "Authorization"], // Dozwolone nagłówki
   })
